@@ -1,17 +1,17 @@
 var crypto = require('crypto'),
-    http = require('http'),
-    https = require('https'),
-    URL = require('url');
+  http = require('http'),
+  https = require('https'),
+  URL = require('url');
 
 var async = require("async");
 
 var Class = require("./inheritance").Class,
-    color = require("./color"),
-    error = require("./error"),
-    is_ans1_token = require("./utils").is_ans1_token,
-    StreamingUpload = require("./streaming").StreamingUpload,
-    urljoin = require("./utils").urljoin,
-    io = require("./io");
+  color = require("./color"),
+  error = require("./error"),
+  is_ans1_token = require("./utils").is_ans1_token,
+  StreamingUpload = require("./streaming").StreamingUpload,
+  urljoin = require("./utils").urljoin,
+  io = require("./io");
 
 
 var XMLHttpRequest = io.XMLHttpRequest;
@@ -108,7 +108,13 @@ var Client = Class.extend({
     var search_service_type = service_type || this.service_type;
     for (var i = 0; i < this.service_catalog.length; i++) {
       if (this.service_catalog[i].type === search_service_type) {
-        return this.service_catalog[i].endpoints[0][endpoint_type];
+        var url = this.service_catalog[i].endpoints[0][endpoint_type];
+
+        if (this.service_type === "identity" && this.version === "3.0") {
+          url = url.replace("v2.0", "v3");
+        }
+
+        return url;
       }
     }
     if (service_type) {  // If we came up empty for a specific search, return null.
@@ -139,25 +145,25 @@ var Client = Class.extend({
       client.log_request("error", method, url, req_headers, data);
     }
 
-    if (typeof response_text === "string") {
-      // If not set, check for a param truncation but fallback to -1, otherwise respect the user-defined global truncation.
-      var truncate_at = client.truncate_response_at === -1 ? (params.truncate_at || client.truncate_response_at) : client.truncate_response_at;
+    // If not set, check for a param truncation but fallback to -1, otherwise respect the user-defined global truncation.
+    var truncate_at = client.truncate_response_at === -1 ? (params.truncate_at || client.truncate_response_at) : client.truncate_response_at;
 
-      if (
-        client.truncate_long_response &&
-        truncate_at >= 0 &&
-        response_text.length >= client.truncate_response_at
+    if (
+      client.truncate_long_response &&
+      truncate_at >= 0 &&
+      response_text.length >= client.truncate_response_at
       ) {
-        response_text = response_text.substring(0, truncate_at) + "... (truncated)";
-      }
-
-      if (status === 0) {
-        response_text = "<REQUEST ABORTED>";
-      }
-
-      client.log_response((status === 0 || status >= 400) ? "error" : "info",
-                          method, url, status, resp_headers, response_text);
+      response_text = response_text.substring(0, truncate_at) + "... (truncated)";
     }
+
+    if (status === 0) {
+      response_text = "<REQUEST ABORTED>";
+    }
+
+
+    client.log_response((status === 0 || status >= 400) ? "error" : "info",
+      method, url, status, resp_headers, response_text);
+
 
     // Response handling.
     // Ignore informational codes for now (1xx).
@@ -168,14 +174,10 @@ var Client = Class.extend({
       if (params.raw_result) {
         result = response_text;
       } else if (response_text) {
-        if (typeof response_text === "string") {
-          try {
-            result = JSON.parse(response_text);
-          } catch (e) {
-            client.log("error", "Invalid JSON response");
-          }
-        } else {
-          result = response_text;
+        try {
+          result = JSON.parse(response_text);
+        } catch (e) {
+          client.log("error", "Invalid JSON response");
         }
 
         if (result) {
@@ -199,9 +201,9 @@ var Client = Class.extend({
     // Handle errors (4xx, 5xx)
     if (status === 0 || status >= 400) {
       var api_error,
-          message,
-          Err = error.get_error(status),
-          err;
+        message,
+        Err = error.get_error(status),
+        err;
 
       try {
         api_error = JSON.parse(response_text);
@@ -228,21 +230,13 @@ var Client = Class.extend({
   // All other methods eventually route back to this one.
   request: function (params, callback) {
     var xhr = new XMLHttpRequest(),
-        client = this,
-        token = this.scoped_token || this.unscoped_token,
-        url = params.url,
-        dataType,
-        data,
-        headers,
-        method;
-
-    // Short circuit if response data is already provided (such as from a push notification)
-    if (params.push_data) {
-      var response_data = {};
-      if (params.result_key) response_data[params.result_key] = params.push_data;
-      else response_data = params.push_data;
-      return client.process_response('AMQP', '', '', 200, response_data, '', '', params, end);
-    }
+      client = this,
+      token = this.scoped_token || this.unscoped_token,
+      url = params.url,
+      dataType,
+      data,
+      headers,
+      method;
 
     // This is mainly necessary due to Glance needing the Content-Length
     // header set on PUT requests, but xmlhttprequest only setting it for POST.
@@ -317,8 +311,8 @@ var Client = Class.extend({
       var status = parseInt(xhr.status, 10);
       if (xhr.readyState === 4) {
         var raw_headers = xhr.getAllResponseHeaders(),
-            lines = raw_headers.split(/\r\n|\r|\n|;/),
-            resp_headers = {};
+          lines = raw_headers.split(/\r\n|\r|\n|;/),
+          resp_headers = {};
         lines.forEach(function (line) {
           var matches;
           line = line.trim();
@@ -400,7 +394,7 @@ var Client = Class.extend({
   // Authentication against the auth URL
   authenticate: function (params, callback) {
     var credentials = {},
-        client = this;
+      client = this;
 
     function authenticated(result, xhr) {
       if (result.token) {
@@ -446,6 +440,7 @@ var Client = Class.extend({
       data: credentials,
       result_key: "access",
       success: authenticated,
+      allow_insecure_cert: params.allow_insecure_cert,
       error: function (err, xhr) {
         if (callback) callback(err);
         if (params.error) params.error(err);
@@ -482,8 +477,6 @@ var Manager = Class.extend({
     };
   },
 
-  _rpc_to_api: function (rpc) { return rpc; },  // No-op by default
-
   // Convenience function that attempts to take english plural forms and
   // make them singular by removing the "s". This function exists so that
   // most plural and singular resource names can be derived from that single
@@ -499,7 +492,7 @@ var Manager = Class.extend({
   get_base_url: function (params) {
     var base = this.client.url_for(params.endpoint_type || this.endpoint_type);
     if (!base) {
-        base = this.client.url_for(params.endpoint_type_backup || this.endpoint_type_backup);
+      base = this.client.url_for(params.endpoint_type_backup || this.endpoint_type_backup);
     }
     return urljoin(base, this.prepare_namespace(params));
   },
@@ -528,10 +521,6 @@ var Manager = Class.extend({
     // Allow false-y values for the result key.
     if (typeof(params.result_key) === "undefined") {
       params.result_key = params.result_key || this[plural_or_singular];
-    }
-
-    if (params.push_data) {
-      params.push_data = this._rpc_to_api(params.push_data);
     }
 
     // Ensure that we only wrap the data object if data is present and
@@ -584,9 +573,9 @@ var Manager = Class.extend({
   // In reality the default is to mock this method with parallel get calls.
   in_bulk: function (params, callback) {
     var manager = this,
-        lookups = [],
-        success = params.success,
-        error = params.error;
+      lookups = [],
+      success = params.success,
+      error = params.error;
 
     if (params.success) delete params.success;
     if (params.error) delete params.error;
@@ -661,8 +650,8 @@ var Manager = Class.extend({
     var client = this.client;
 
     var matches = params.url.match(/^(https?)\:\/\/([^\/?#]+)(?:[\/?#]|$)/i),
-        host_and_port = matches[2].split(':'),
-        request_module, request_default_port;
+      host_and_port = matches[2].split(':'),
+      request_module, request_default_port;
 
     if (matches[1] === 'https') {
       request_module = https;
