@@ -1,8 +1,7 @@
-var async = require('async'),
-  base = require("../../client/base"),
-  error = require("../../client/error"),
-  interpolate = require("../../client/utils").interpolate;
-
+var async       = require('async'),
+    base        = require("../../client/base"),
+    error       = require("../../client/error"),
+    interpolate = require("../../client/utils").interpolate;
 
 var ProjectGroupMembershipManager = base.Manager.extend({
   namespace: "/projects/{project_id}/groups",

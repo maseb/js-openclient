@@ -1,9 +1,9 @@
-var base = require("../../client/base"),
-  error = require("../../client/error"),
+var base      = require("../../client/base"),
+  error       = require("../../client/error"),
   interpolate = require("../../client/utils").interpolate;
 
 
-var UserRoleManager = base.Manager.extend({
+var GroupRolesManager = base.Manager.extend({
   namespace: "/projects/{project_id}/groups/{group_id}/roles",
   plural: "roles",
 
@@ -16,4 +16,4 @@ var UserRoleManager = base.Manager.extend({
 });
 
 
-module.exports = UserRoleManager;
+module.exports = GroupRolesManager;
