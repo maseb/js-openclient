@@ -9,7 +9,8 @@ var v2_client                      = require("../v2.0/client"),
     ProjectGroupMembershipManager  = require("./project_group_membership"),
     ProjectUserMembershipManager   = require("./project_user_membership"),
     CombinedMembershipManager      = require("./combined_membership"),
-    RoleAssignmentsManager         = require("./role_assignments");
+    RoleAssignmentsManager         = require("./role_assignments"),
+    ProjectManager                 = require("./projects");
 
 var Keystone = v2_client.extend({
   service_type: "identity",
@@ -17,6 +18,7 @@ var Keystone = v2_client.extend({
 
   init: function (options) {
     this._super(options);
+    this.projects = new ProjectManager(this);
     this.user_roles = new UserRolesManager(this);
 
     this.group_users = new GroupUsersManager(this);

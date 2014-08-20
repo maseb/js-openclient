@@ -6,15 +6,15 @@ var _     = require("underscore"),
   base  = require("../../client/base");
 
 var ProjectGroupMembershipManager = Class.extend({
-  init: function(groups_manager, group_roles_manager, role_assignments_manager) {
-    this._role_assignments_manager  = role_assignments_manager;
-    this._groups_manager            = groups_manager;
-    this._group_roles_manager       = group_roles_manager;
+  init: function(groups, group_roles, role_assignments) {
+    this._role_assignments  = role_assignments;
+    this._groups            = groups;
+    this._group_roles       = group_roles;
   },
 
 
   all: function(params, callback) {
-    this._role_assignments_manager.all({
+    this._role_assignments.all({
       query: {
         "scope.project.id": params.data.project,
         "group.id": params.data.group
@@ -37,14 +37,14 @@ var ProjectGroupMembershipManager = Class.extend({
 
   del: function(params, callback) {
     var endpoint_type = params.endpoint_type;
-    this._group_roles_manager.all({
+    this._group_roles.all({
       project: params.data.project,
       group: params.id,
       endpoint_type: endpoint_type,
       success: _.bind(function(roles) {
         var calls = _.map(roles, _.bind(function(role) {
           return _.bind(function(done) {
-            this._group_roles_manager.del({
+            this._group_roles.del({
               id: role.id,
               project: params.data.project,
               group: params.id,
@@ -77,7 +77,7 @@ var ProjectGroupMembershipManager = Class.extend({
   create: function(params, callback) {
     var endpoint_type = params.endpoint_type;
 
-    this._group_roles_manager.update({
+    this._group_roles.update({
       id: params.data.id,
       project: params.data.project,
       group: params.data.group,
@@ -106,7 +106,7 @@ var ProjectGroupMembershipManager = Class.extend({
 
 
   _fetchGroupMembership: function(project, groupSpec, cb) {
-    this._groups_manager.get({
+    this._groups.get({
       data: {
         id: groupSpec.id
       }
@@ -133,7 +133,7 @@ var ProjectGroupMembershipManager = Class.extend({
 
 
   _fetchProjectRolesForGroup: function(project, groupSpec, cb) {
-    this._group_roles_manager.all({
+    this._group_roles.all({
       project: project,
       group: groupSpec.id
     }, cb);

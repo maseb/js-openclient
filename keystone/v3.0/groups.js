@@ -4,6 +4,7 @@ var base = require("../../client/base"),
 
 var GroupManager = base.Manager.extend({
   namespace: "groups",
+  plural: "groups",
   // TODO: Test all group API functions to see what needs to be overridden.
 
   _rpc_to_api: function (rpc) {

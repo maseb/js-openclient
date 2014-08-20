@@ -7,14 +7,14 @@ var _     = require("underscore"),
     error = require("../../client/error");
 
 var ProjectMembershipManager = Class.extend({
-  init: function(user_project_memberships_manager, group_project_memberships_manager, role_assignments_manager) {
-    this._user_project_memberships_manager = user_project_memberships_manager;
-    this._group_project_memberships_manager = group_project_memberships_manager;
-    this._role_assignments_manager = role_assignments_manager;
+  init: function(user_project_memberships, group_project_memberships, role_assignments) {
+    this._user_project_memberships = user_project_memberships;
+    this._group_project_memberships = group_project_memberships;
+    this._role_assignments = role_assignments;
   },
 
   all: function(params, callback) {
-    this._role_assignments_manager.all({
+    this._role_assignments.all({
       query: {
        "scope.project.id": params.data.project
       }
@@ -32,9 +32,9 @@ var ProjectMembershipManager = Class.extend({
   create: function(params, callback) {
     var assignableType = params.data.assignableType;
     if (assignableType === "user") {
-      this._user_project_memberships_manager.create(params, callback);
+      this._user_project_memberships.create(params, callback);
     } else if (assignableType === "group") {
-      this._group_project_memberships_manager.create(params, callback);
+      this._group_project_memberships.create(params, callback);
     } else {
       base.Manager.prototype.safe_complete.call(this, new Error("Invalid assignableType"), null, null, params, callback);
     }
@@ -43,9 +43,9 @@ var ProjectMembershipManager = Class.extend({
   del: function(params, callback) {
     var assignableType = params.data.assignableType;
     if (assignableType === "user") {
-      this._user_project_memberships_manager.del(params, callback);
+      this._user_project_memberships.del(params, callback);
     } else if (assignableType === "group") {
-      this._group_project_memberships_manager.del(params, callback);
+      this._group_project_memberships.del(params, callback);
     } else {
       cb(new Error("Invalid assignableType"));
     }
@@ -53,9 +53,9 @@ var ProjectMembershipManager = Class.extend({
 
   _convertAssignment: function(project, assignment, cb) {
     if (assignment.user) {
-      this._user_project_memberships_manager._fetchUserMembership(project, assignment.user, cb);
+      this._user_project_memberships._fetchUserMembership(project, assignment.user, cb);
     } else if (assignment.group) {
-      this._group_project_memberships_manager._fetchGroupMembership(project, assignment.group, cb);
+      this._group_project_memberships._fetchGroupMembership(project, assignment.group, cb);
     } else {
       cb(new Error("Unhandled assignment type"));
     }

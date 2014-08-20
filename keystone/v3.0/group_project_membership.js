@@ -6,13 +6,13 @@ var _     = require("underscore"),
     base  = require("../../client/base");
 
 var GroupProjectMembershipManager = Class.extend({
-  init: function(role_assignments_manager) {
-    this._role_assignments_manager  = role_assignments_manager;
+  init: function(role_assignments) {
+    this._role_assignments  = role_assignments;
   },
 
 
   all: function(params, callback) {
-    this._role_assignments_manager.all({
+    this._role_assignments.all({
       query: {
         "group.id": params.data.group
       }

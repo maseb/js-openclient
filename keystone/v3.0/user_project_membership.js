@@ -6,14 +6,14 @@ var _     = require("underscore"),
     base  = require("../../client/base");
 
 var UserProjectMembershipManager = Class.extend({
-  init: function(users_manager, user_roles_manager, role_assignments_manager) {
-    this._users_manager = users_manager;
-    this._user_roles_manager = user_roles_manager;
-    this._role_assignments_manager = role_assignments_manager;
+  init: function(users, user_roles, role_assignments) {
+    this._users = users;
+    this._user_roles = user_roles;
+    this._role_assignments = role_assignments;
   },
 
   all: function(params, callback) {
-    this._role_assignments_manager.all({
+    this._role_assignments.all({
       query: {
         "scope.project.id": params.data.project,
         "user.id": params.data.user
@@ -36,14 +36,14 @@ var UserProjectMembershipManager = Class.extend({
 
   del: function(params, callback) {
     var endpoint_type = params.endpoint_type;
-    this._user_roles_manager.all({
+    this._user_roles.all({
       project: params.data.project,
       user: params.id,
       endpoint_type: endpoint_type,
       success: _.bind(function(roles) {
         var calls = _.map(roles, _.bind(function(role) {
           return _.bind(function(done) {
-            this._user_roles_manager.del({
+            this._user_roles.del({
               id: role.id,
               project: params.data.project,
               user: params.id,
@@ -76,7 +76,7 @@ var UserProjectMembershipManager = Class.extend({
   create: function(params, callback) {
     var endpoint_type = params.endpoint_type;
 
-    this._user_roles_manager.update({
+    this._user_roles.update({
       id: params.data.id,
       project: params.data.project,
       user: params.data.user,
@@ -104,7 +104,7 @@ var UserProjectMembershipManager = Class.extend({
   },
 
   _fetchUserMembership: function(project, userSpec, cb) {
-    this._users_manager.get({
+    this._users.get({
       id: userSpec.id
     }, _.bind(function(err, user) {
       if (err) {
@@ -135,7 +135,7 @@ var UserProjectMembershipManager = Class.extend({
 
   _fetchProjectRolesForUser: function(project, userSpec, cb) {
     console.log("DBG: Fetching user roles", project, userSpec.id);
-    this._user_roles_manager.all({
+    this._user_roles.all({
       project: project,
       user: userSpec.id
     }, cb);
