@@ -3,8 +3,13 @@
 var _     = require("underscore"),
   async = require("async"),
   Class = require("../../client/inheritance").Class,
-  base  = require("../../client/base");
+  base  = require("../../client/base"),
+  error = require("../../client/error");
 
+/**
+ * Manager-alike for assigning group roles on a project.
+ * @type {ProjectGroupMembershipManager}
+ */
 var ProjectGroupMembershipManager = Class.extend({
   init: function(groups, group_roles, role_assignments) {
     this._role_assignments  = role_assignments;
@@ -32,6 +37,17 @@ var ProjectGroupMembershipManager = Class.extend({
         base.Manager.prototype.safe_complete.call(this, err, results, null, params, callback);
       });
     }, this));
+  },
+
+
+  get: function(params, callback) {
+    this._fetchGroupMembership(params.data.project, {id: params.data.group}, function(err, membership) {
+      if (err) {
+        base.Manager.prototype.safe_complete.call(this, err, null, {error: err}, params, callback);
+      } else {
+        base.Manager.prototype.safe_complete.call(this, null, membership, {status: 200}, params, callback);
+      }
+    });
   },
 
 
@@ -94,14 +110,8 @@ var ProjectGroupMembershipManager = Class.extend({
   },
 
 
-  get: function(params, callback) {
-    this._fetchGroupMembership(params.data.project, {id: params.data.group}, function(err, membership) {
-      if (err) {
-        base.Manager.prototype.safe_complete.call(this, err, null, {error: err}, params, callback);
-      } else {
-        base.Manager.prototype.safe_complete.call(this, null, membership, {status: 200}, params, callback);
-      }
-    });
+  update: function() {
+    throw new error.NotImplemented();
   },
 
 

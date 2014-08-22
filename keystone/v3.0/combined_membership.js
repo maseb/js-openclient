@@ -6,12 +6,18 @@ var _     = require("underscore"),
     base  = require("../../client/base"),
     error = require("../../client/error");
 
+/**
+ * Manager-alike which delegates between a {UserProjectMembershipManager} and a {GroupProjectMembershipManager}, based
+ * on the provided `assignableType`.
+ * @type {ProjectMembershipManager}
+ */
 var ProjectMembershipManager = Class.extend({
   init: function(user_project_memberships, group_project_memberships, role_assignments) {
     this._user_project_memberships = user_project_memberships;
     this._group_project_memberships = group_project_memberships;
     this._role_assignments = role_assignments;
   },
+
 
   all: function(params, callback) {
     this._role_assignments.all({
@@ -29,6 +35,12 @@ var ProjectMembershipManager = Class.extend({
     }, this));
   },
 
+
+  get: function() {
+    throw new error.NotImplemented();
+  },
+
+
   create: function(params, callback) {
     var assignableType = params.data.assignableType;
     if (assignableType === "user") {
@@ -40,6 +52,7 @@ var ProjectMembershipManager = Class.extend({
     }
   },
 
+
   del: function(params, callback) {
     var assignableType = params.data.assignableType;
     if (assignableType === "user") {
@@ -50,6 +63,12 @@ var ProjectMembershipManager = Class.extend({
       cb(new Error("Invalid assignableType"));
     }
   },
+
+
+  update: function() {
+    throw new error.NotImplemented();
+  },
+
 
   _convertAssignment: function(project, assignment, cb) {
     if (assignment.user) {

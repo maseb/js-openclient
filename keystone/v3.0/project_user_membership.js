@@ -3,8 +3,13 @@
 var _     = require("underscore"),
   async = require("async"),
   Class = require("../../client/inheritance").Class,
-  base  = require("../../client/base");
+  base  = require("../../client/base"),
+  error = require("../../client/error");
 
+/**
+ * Manager-alike helper for assigning user roles on a project.
+ * @type {void|*}
+ */
 var ProjectUserMembershipManager = Class.extend({
   init: function(users, user_roles, role_assignments) {
     this._users = users;
@@ -31,6 +36,17 @@ var ProjectUserMembershipManager = Class.extend({
         base.Manager.prototype.safe_complete.call(this, err, results, null, params, callback);
       });
     }, this));
+  },
+
+
+  get: function(params, callback) {
+    this._fetchUserMembership(params.data.project, {id: params.data.group}, function(err, membership) {
+      if (err) {
+        base.Manager.prototype.safe_complete.call(this, err, null, {error:err}, params, callback);
+      } else {
+        base.Manager.prototype.safe_complete.call(this, null, membership, {status: 200}, params, callback);
+      }
+    });
   },
 
 
@@ -93,15 +109,10 @@ var ProjectUserMembershipManager = Class.extend({
   },
 
 
-  get: function(params, callback) {
-    this._fetchUserMembership(params.data.project, {id: params.data.group}, function(err, membership) {
-      if (err) {
-        base.Manager.prototype.safe_complete.call(this, err, null, {error:err}, params, callback);
-      } else {
-        base.Manager.prototype.safe_complete.call(this, null, membership, {status: 200}, params, callback);
-      }
-    });
+  update: function() {
+    throw new error.NotImplemented();
   },
+
 
   _fetchUserMembership: function(project, userSpec, cb) {
     this._users.get({

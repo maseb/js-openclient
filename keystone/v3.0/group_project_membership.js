@@ -3,8 +3,15 @@
 var _     = require("underscore"),
     async = require("async"),
     Class = require("../../client/inheritance").Class,
-    base  = require("../../client/base");
+    base  = require("../../client/base"),
+    error = require("../../client/error");
 
+/**
+ * "group project" memberships are lighter-weight than their "project group" counterparts. They're a
+ * minimal grouping and transformation of {RoleAssignments}
+ *
+ * @type {GroupProjectMembershipManager}
+ */
 var GroupProjectMembershipManager = Class.extend({
   init: function(role_assignments) {
     this._role_assignments  = role_assignments;
@@ -37,7 +44,28 @@ var GroupProjectMembershipManager = Class.extend({
 
       base.Manager.prototype.safe_complete.call(this, err, memberships, {status:200}, params, callback);
     }, this));
+  },
+
+
+  get: function() {
+    throw new error.NotImplemented();
+  },
+
+
+  create: function() {
+    throw new error.NotImplemented();
+  },
+
+
+  update: function() {
+    throw new error.NotImplemented();
+  },
+
+
+  del: function() {
+    throw new error.NotImplemented();
   }
+
 });
 
 
