@@ -8,7 +8,7 @@ var _     = require("underscore"),
 
 /**
  * Manager-alike which delegates between a {UserProjectMembershipManager} and a {GroupProjectMembershipManager}, based
- * on the provided `assignableType`.
+ * on the provided `assignable_type`.
  * @type {ProjectMembershipManager}
  */
 var ProjectMembershipManager = Class.extend({
@@ -30,7 +30,7 @@ var ProjectMembershipManager = Class.extend({
       }
 
       async.map(assignments, _.bind(this._convertAssignment, this, params.data.project), function(err, results) {
-        base.Manager.prototype.safe_complete.call(this, err, results, null, params, callback);
+        base.Manager.prototype.safe_complete.call(this, null, results, {status:200}, params, callback);
       });
     }, this));
   },
@@ -42,25 +42,28 @@ var ProjectMembershipManager = Class.extend({
 
 
   create: function(params, callback) {
-    var assignableType = params.data.assignableType;
-    if (assignableType === "user") {
+    var assignable_type = params.data.assignable_type;
+    if (assignable_type === "user") {
       this._user_project_memberships.create(params, callback);
-    } else if (assignableType === "group") {
+    } else if (assignable_type === "group") {
       this._group_project_memberships.create(params, callback);
     } else {
-      base.Manager.prototype.safe_complete.call(this, new Error("Invalid assignableType"), null, null, params, callback);
+      base.Manager.prototype.safe_complete.call(this, new Error("Invalid assignable_type"), null, null, params, callback);
     }
   },
 
+  bulkCreate: function(params, callback) {
+
+  },
 
   del: function(params, callback) {
-    var assignableType = params.data.assignableType;
-    if (assignableType === "user") {
+    var assignable_type = params.data.assignable_type;
+    if (assignable_type === "user") {
       this._user_project_memberships.del(params, callback);
-    } else if (assignableType === "group") {
+    } else if (assignable_type === "group") {
       this._group_project_memberships.del(params, callback);
     } else {
-      cb(new Error("Invalid assignableType"));
+      cb(new Error("Invalid assignable_type"));
     }
   },
 

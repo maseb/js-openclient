@@ -1,6 +1,7 @@
 /*global require: false, module: false */
 
 var v2_client                      = require("../v2.0/client"),
+    ProjectAssignableManager       = require("./project_assignables");
     UserRolesManager               = require("./user_roles"),
     GroupUsersManager              = require("./group_users"),
     GroupProjectMembershipManager  = require("./group_project_membership"),
@@ -25,9 +26,11 @@ var Keystone = v2_client.extend({
     this.groups = new GroupsManager(this);
     this.group_roles = new GroupRolesManager(this);
     this.role_assignments = new RoleAssignmentsManager(this);
+    this.project_assignables = new ProjectAssignableManager(this.users, this.groups);
 
     this.project_user_memberships = new ProjectUserMembershipManager(this.users, this.user_roles, this.role_assignments);
     this.project_group_memberships = new ProjectGroupMembershipManager(this.groups, this.group_roles, this.role_assignments);
+
     this.project_combined_memberships = new CombinedMembershipManager(this.project_user_memberships, this.project_group_memberships, this.role_assignments);
 
     this.group_project_memberships = new GroupProjectMembershipManager(this.role_assignments);
