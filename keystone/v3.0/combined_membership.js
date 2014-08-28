@@ -5,6 +5,9 @@ var _     = require("underscore"),
     Class = require("../../client/inheritance").Class,
     base  = require("../../client/base"),
     error = require("../../client/error");
+    AssignablesHelper = require("./util/assignables_helper");
+
+var assignablesHelper = new AssignablesHelper();
 
 /**
  * Manager-alike which delegates between a {UserProjectMembershipManager} and a {GroupProjectMembershipManager}, based
@@ -52,8 +55,50 @@ var ProjectMembershipManager = Class.extend({
     }
   },
 
+  // TODO: We need a better story around how we deal with partial failure.
   bulkCreate: function(params, callback) {
+    console.log("DBG", "raw members", JSON.stringify(params.data.members));
+    var mapper = assignablesHelper.parseDisambiguatedId,
+        members = _.chain(params.data.members)
+          .map(mapper)
+          .compact()
+          .map(function(assignable) {
+            /*
+            Map these from `{assignable_type: "group", id: "123"}` to `{assignable_type: "group", group: "123", project: "456"}`, etc
+            to make them compatible with #create.
+             */
+            // Fresh copy of the obj, omitting the original ID (which is user/group ID)
+            var data = _.omit(assignable,"id"),
+                key = assignable.assignable_type;
 
+            // Group/User ID (now renamed .group or .user)
+            data[key] = assignable.id;
+            // Proj ID
+            data.project = params.data.project;
+            // Role ID
+            data.id = params.data.id;
+            return data;
+          })
+          .value();
+    console.log("DBG", "members", JSON.stringify(members));
+    async.mapSeries(members, _.bind(function(member, cb) {
+      console.log("DBG", "member", JSON.stringify(member));
+      this.create({
+        data: member,
+        endpoint_type: params.endpoint_type
+      }, function(err, res) {
+        console.log("DBG", "ERR", err);
+        console.log("DBG", "RES", JSON.stringify(res));
+        cb(err, res);
+      });
+    }, this), _.bind(function(err, results) {
+      if (err) {
+        return base.Manager.prototype.safe_complete.call(this, err, null, null, params, callback);
+        return;
+      }
+      console.log("DBG", "results", JSON.stringify(results));
+      return base.Manager.prototype.safe_complete.call(this, null, null, {status:200}, params, callback);
+    }, this));
   },
 
   del: function(params, callback) {

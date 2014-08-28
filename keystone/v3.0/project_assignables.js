@@ -1,10 +1,13 @@
 /*global require: false, module: false */
 
-var _     = require("underscore"),
-    async = require("async"),
-    Class = require("../../client/inheritance").Class,
-    base  = require("../../client/base"),
-    error = require("../../client/error");
+var _                 = require("underscore"),
+    async             = require("async"),
+    Class             = require("../../client/inheritance").Class,
+    base              = require("../../client/base"),
+    error             = require("../../client/error"),
+    AssignablesHelper = require("./util/assignables_helper");
+
+var assignablesHelper = new AssignablesHelper();
 
 var ProjectAssignableManager = Class.extend({
 
@@ -29,18 +32,17 @@ var ProjectAssignableManager = Class.extend({
 
       _.each(results.users[0], function(user) {
         user.assignable_type = "user";
-        user.disambiguated_id = user.assignable_type + "_" + user.id;
+        user.disambiguated_id = assignablesHelper.disambiguatedId(user.assignable_type, user.id);
       });
 
       _.each(results.groups[0], function(group) {
         group.assignable_type = "group";
-        group.disambiguated_id = group.assignable_type + "_" + group.id;
+        group.disambiguated_id = assignablesHelper.disambiguatedId(group.assignable_type, group.id);
       });
 
       base.Manager.prototype.safe_complete.call(this, null, results.users[0].concat(results.groups[0]), {status:200}, params, callback);
     }, this));
   }
-
 });
 
 module.exports = ProjectAssignableManager;

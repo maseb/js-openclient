@@ -31,7 +31,7 @@ var Keystone = v2_client.extend({
     this.project_user_memberships = new ProjectUserMembershipManager(this.users, this.user_roles, this.role_assignments);
     this.project_group_memberships = new ProjectGroupMembershipManager(this.groups, this.group_roles, this.role_assignments);
 
-    this.project_combined_memberships = new CombinedMembershipManager(this.project_user_memberships, this.project_group_memberships, this.role_assignments);
+    this.project_combined_memberships = new CombinedMembershipManager(this.project_user_memberships, this.project_group_memberships, this.role_assignments, this.project_assignables);
 
     this.group_project_memberships = new GroupProjectMembershipManager(this.role_assignments);
   }
